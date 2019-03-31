@@ -14,10 +14,12 @@ import System.Directory (doesDirectoryExist)
 import System.IO.Unsafe
 import Text.Printf
 
-white, black, red :: Color4 GLfloat
+white, black, red, blue, grey :: Color4 GLfloat
 white = Color4 1 1 1 1
 black = Color4 0 0 0 1
 red = Color4 1 0 0 1
+blue = Color4 0 0 1 1
+grey = Color4 0.5 0.5 0.5 1
 
 type Point = (GLdouble, GLdouble, GLdouble)
 
@@ -32,7 +34,7 @@ vertices :: (V3 GLdouble, V3 GLdouble, V3 GLdouble)
 vertices = scaleV3s 0.9 (toV3s points1)
 
 mesh :: [(V3 GLdouble, V3 GLdouble, V3 GLdouble)]
-mesh = gyrosubdiv vertices 4
+mesh = gyrosubdiv vertices 5
 
 data Context = Context
   { contextRot1 :: IORef GLfloat
@@ -56,6 +58,7 @@ display context = do
   rotate r3 $ Vector3 0 0 1
   renderPrimitive Triangles $ do
     materialDiffuse Front $= red
+    materialDiffuse Back $= blue
     mapM_ drawTriangle mesh
   swapBuffers
   where
@@ -115,7 +118,7 @@ idle ::
   -> IORef Int
   -> IORef GLfloat
   -> IdleCallback
-idle anim save delay snapshot rot3 = do
+idle anim save delay snapshot rot2 = do
   a <- get anim
   ss <- get snapshot
   s <- get save
@@ -126,7 +129,7 @@ idle anim save delay snapshot rot3 = do
       (>>=) capturePPM (B.writeFile ppm)
       print ss
       snapshot $~! (+ 1)
-    rot3 $~! (+ 2)
+    rot2 $~! (+ 2)
     _ <- threadDelay d
     postRedisplay Nothing
   return ()
@@ -138,12 +141,17 @@ main = do
   _ <- createWindow "Hyperbolic triangle"
   windowSize $= Size 500 500
   initialDisplayMode $= [RGBAMode, DoubleBuffered, WithDepthBuffer]
-  clearColor $= black
+  clearColor $= white
   materialAmbient FrontAndBack $= black
+  materialDiffuse FrontAndBack $= white
+  materialEmission FrontAndBack $= Color4 0 0 0 0
+  materialSpecular FrontAndBack $= white
+  materialShininess FrontAndBack $= 50
   lighting $= Enabled
+  lightModelAmbient $= Color4 0.35 0.35 0.35 1
+  lightModelTwoSide $= Enabled
   light (Light 0) $= Enabled
   position (Light 0) $= Vertex4 0 0 (-500) 1
-  ambient (Light 0) $= white
   diffuse (Light 0) $= white
   specular (Light 0) $= white
   depthFunc $= Just Less
@@ -167,7 +175,7 @@ main = do
   keyboardCallback $=
     Just (keyboard rot1 rot2 rot3 zoom anim save delay)
   snapshot <- newIORef 0
-  idleCallback $= Just (idle anim save delay snapshot rot3)
+  idleCallback $= Just (idle anim save delay snapshot rot2)
   putStrLn
     "*** 3D Hyperbolic triangle ***\n\
         \    To quit, press q.\n\
