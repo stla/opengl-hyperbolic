@@ -1,0 +1,6 @@
+{
+  "disable": false,
+  "suppressErrors": true,
+  "ghcOptions": [],
+  "ghcModOptions": ["--with-ghc"]
+}
