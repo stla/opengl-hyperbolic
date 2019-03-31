@@ -17,6 +17,7 @@ library
   exposed-modules:     Gyro
                      , Triangle
                      , Utils
+                     , Tetrahedron
   build-depends:       base >= 4.7 && < 5
                      , OpenGL
                      , GLUT

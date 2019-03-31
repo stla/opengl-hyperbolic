@@ -34,8 +34,8 @@ gyrosubdiv0 (a1, a2, a3) =
     m23 = gyromidpoint a2 a3
     g = gyrocentroid a1 a2 a3
 
-gyrosubdiv :: Floating a => (V3 a, V3 a, V3 a) -> Int -> [(V3 a, V3 a, V3 a)]
-gyrosubdiv (a1, a2, a3) depth = go depth [(a1, a2, a3)]
+gyrosubdiv :: Floating a => Int -> (V3 a, V3 a, V3 a) -> [(V3 a, V3 a, V3 a)]
+gyrosubdiv depth (a1, a2, a3) = go depth [(a1, a2, a3)]
   where
     go n list | n == 0 = list
               | otherwise = concatMap gyrosubdiv0 (go (n-1) list)

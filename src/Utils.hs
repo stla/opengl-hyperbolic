@@ -15,9 +15,6 @@ scaleV3s mu (a1, a2, a3) = (mu *^ a1, mu *^ a2, mu *^ a3)
 toVx3 :: Floating a => V3 a -> Vertex3 a
 toVx3 (V3 x y z) = Vertex3 x y z
 
---toVx3s :: Floating a => (V3 a, V3 a, V3 a) -> (Vertex3 a, Vertex3 a, Vertex3 a)
---toVx3s (a1, a2, a3) = (toVx3 a1, toVx3 a2, toVx3 a3)
-
 triangleNormal :: Floating a => (V3 a, V3 a, V3 a) -> Normal3 a
 triangleNormal (a1, a2, a3) =
   Normal3 x y z
