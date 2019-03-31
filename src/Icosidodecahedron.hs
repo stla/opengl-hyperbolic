@@ -1,4 +1,4 @@
-module Triangle where
+module Icosidodecahedron where
 
 import Gyro2
 import Utils
@@ -23,18 +23,117 @@ grey = Color4 0.35 0.35 0.35 1
 
 type Point = (GLdouble, GLdouble, GLdouble)
 
-points1 :: (Point, Point, Point)
-points1 = (
-    (0.0000000,  0.3568221,  0.9341724),
-    (0.3568221, -0.9341724,  0.0000000),
-    (0.5773503,  0.5773503, -0.5773503)
-  )
+phi :: GLdouble
+phi = (1 + sqrt 5) / 2
 
-vertices :: (V3 GLdouble, V3 GLdouble, V3 GLdouble)
-vertices = scaleV3s 0.9 (toV3s points1)
+points :: [Point]
+points = [
+    (0,0,2*phi),
+    (0,2*phi,0),
+    (2*phi,0,0),
+    (0,0,-2*phi),
+    (0,-2*phi,0),
+    (-2*phi,0,0),
+    (1,phi,phi2),
+    (1,phi,-phi2),
+    (1,-phi,phi2),
+    (-1,phi,phi2),
+    (1,-phi,-phi2),
+    (-1,phi,-phi2),
+    (-1,-phi,phi2),
+    (-1,-phi,-phi2),
+    (phi,phi2,1),
+    (phi,-phi2,1),
+    (-phi,phi2,1),
+    (phi,phi2,-1),
+    (-phi,-phi2,1),
+    (phi,-phi2,-1),
+    (-phi,phi2,-1),
+    (-phi,-phi2,-1),
+    (phi2,1,phi),
+    (-phi2,1,phi),
+    (phi2,1,-phi),
+    (phi2,-1,phi),
+    (-phi2,1,-phi),
+    (-phi2,-1,phi),
+    (phi2,-1,-phi),
+    (-phi2,-1,-phi)
+  ]
+  where
+    phi2 = phi*phi
 
-mesh :: [(V3 GLdouble, V3 GLdouble, V3 GLdouble)]
-mesh = gyrosubdiv 5 vertices
+faces :: [[Int]]
+faces =
+  [
+    [6, 9, 0],
+    [3, 11, 7],
+    [16, 23, 9],
+    [22, 14, 6],
+    [12, 8, 0],
+    [3, 10, 13],
+    [20, 16, 1],
+    [11, 26, 20],
+    [19, 15, 4],
+    [8, 15, 25],
+    [2, 22, 25],
+    [1, 14, 17],
+    [17, 24, 7],
+    [28, 24, 2],
+    [28, 19, 10],
+    [4, 18, 21],
+    [27, 23, 5],
+    [27, 18, 12],
+    [5, 26, 29],
+    [13, 21, 29],
+    [9, 6, 14],
+    [14, 16, 9],
+    [1, 16, 14],
+    [5, 23, 20],
+    [20, 26, 5],
+    [23, 16, 20],
+    [0, 8, 25],
+    [25, 22, 6],
+    [25, 6, 0],
+    [18, 15, 8],
+    [4, 15, 18],
+    [8, 12, 18],
+    [17, 22, 2],
+    [14, 22, 17],
+    [2, 24, 17],
+    [11, 20, 17],
+    [17, 7, 11],
+    [17, 20, 1],
+    [28, 10, 3],
+    [3, 7, 28],
+    [7, 24, 28],
+    [28, 25, 15],
+    [15, 19, 28],
+    [2, 25, 28],
+    [21, 13, 10],
+    [10, 19, 21],
+    [21, 19, 4],
+    [9, 23, 27],
+    [0, 9, 27],
+    [27, 12, 0],
+    [29, 26, 11],
+    [29, 11, 3],
+    [3, 13, 29],
+    [18, 27, 29],
+    [29, 21, 18],
+    [29, 27, 5]
+  ]
+
+triangles1 :: [(Point, Point, Point)]
+triangles1 = map getPoints faces
+  where
+    getPoints face =
+      (points !! (face !! 0), points !! (face !! 1), points !! (face !! 2))
+
+triangles :: [(V3 GLdouble, V3 GLdouble, V3 GLdouble)]
+triangles = map (scaleV3s (0.95/2/phi) . toV3s) triangles1
+
+meshes :: [[(V3 GLdouble, V3 GLdouble, V3 GLdouble)]]
+meshes = map (gyrosubdiv 5) triangles
 
 data Context = Context
   { contextRot1 :: IORef GLfloat
@@ -56,10 +155,9 @@ display context = do
   rotate r1 $ Vector3 1 0 0
   rotate r2 $ Vector3 0 1 0
   rotate r3 $ Vector3 0 0 1
-  renderPrimitive Triangles $ do
-    materialDiffuse Front $= red
-    materialDiffuse Back $= blue
-    mapM_ drawTriangle mesh
+  mapM_ (\mesh -> renderPrimitive Triangles $ do
+    materialDiffuse Front $= blue
+    mapM_ drawTriangle mesh) meshes
   swapBuffers
   where
     drawTriangle (v1,v2,v3) = do
@@ -138,24 +236,24 @@ idle anim save delay snapshot rot2 = do
 main :: IO ()
 main = do
   _ <- getArgsAndInitialize
-  _ <- createWindow "Hyperbolic triangle"
+  _ <- createWindow "Hyperbolic dodecahedron"
   windowSize $= Size 500 500
   initialDisplayMode $= [RGBAMode, DoubleBuffered, WithDepthBuffer]
   clearColor $= white
-  materialAmbient FrontAndBack $= black
-  materialDiffuse FrontAndBack $= white
-  materialEmission FrontAndBack $= Color4 0 0 0 0
-  materialSpecular FrontAndBack $= white
-  materialShininess FrontAndBack $= 50
+  materialAmbient Front $= black
+  materialDiffuse Front $= white
+  materialEmission Front $= Color4 0 0 0 0
+  materialSpecular Front $= white
+  materialShininess Front $= 10
   lighting $= Enabled
   lightModelAmbient $= grey
-  lightModelTwoSide $= Enabled
   light (Light 0) $= Enabled
   position (Light 0) $= Vertex4 0 0 (-500) 1
   diffuse (Light 0) $= white
   specular (Light 0) $= white
   depthFunc $= Just Less
   shadeModel $= Smooth
+  cullFace $= Just Back
   rot1 <- newIORef 0.0
   rot2 <- newIORef 0.0
   rot3 <- newIORef 0.0
@@ -177,7 +275,7 @@ main = do
   snapshot <- newIORef 0
   idleCallback $= Just (idle anim save delay snapshot rot2)
   putStrLn
-    "*** 3D Hyperbolic triangle ***\n\
+    "*** Hyperbolic dodecahedron ***\n\
         \    To quit, press q.\n\
         \    Scene rotation: e, r, t, y, u, i\n\
         \    Zoom: l, m\n\

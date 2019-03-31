@@ -1,6 +1,6 @@
 module Tetrahedron where
 
-import Gyro
+import Gyro2
 import Utils
 import Control.Concurrent (threadDelay)
 import Control.Monad (when)
@@ -41,7 +41,7 @@ triangles1 = map getPoints faces
       (points !! (face !! 0), points !! (face !! 1), points !! (face !! 2))
 
 triangles :: [(V3 GLdouble, V3 GLdouble, V3 GLdouble)]
-triangles = map (scaleV3s 0.9 . toV3s) triangles1
+triangles = map (scaleV3s 0.95 . toV3s) triangles1
 
 meshes :: [[(V3 GLdouble, V3 GLdouble, V3 GLdouble)]]
 meshes = map (gyrosubdiv 5) triangles

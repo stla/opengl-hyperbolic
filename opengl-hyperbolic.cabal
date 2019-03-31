@@ -14,11 +14,12 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Gyro
+  exposed-modules:     Gyro2
                      , Triangle
                      , Utils
                      , Tetrahedron
                      , Dodecahedron
+                     , Icosidodecahedron
   build-depends:       base >= 4.7 && < 5
                      , OpenGL
                      , GLUT
