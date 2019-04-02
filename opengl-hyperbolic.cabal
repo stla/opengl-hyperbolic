@@ -20,6 +20,7 @@ library
                      , Tetrahedron
                      , Dodecahedron
                      , Icosidodecahedron
+                     , GyroU
   build-depends:       base >= 4.7 && < 5
                      , OpenGL
                      , GLUT
