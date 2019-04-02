@@ -104,14 +104,15 @@ triangles1 = map getPoints faces
 triangles :: Mesh
 triangles = map toV3s triangles1
 
-meshes :: [Mesh]
-meshes = map (gyrosubdiv 5 0.025) triangles
+meshes :: GLdouble -> [Mesh]
+meshes s = map (gyrosubdiv 5 s) triangles -- smin: 0.025
 
 data Context = Context
   { contextRot1 :: IORef GLfloat
   , contextRot2 :: IORef GLfloat
   , contextRot3 :: IORef GLfloat
   , contextZoom :: IORef Double
+  , contextMeshes :: IORef [Mesh]
   }
 
 display :: Context -> DisplayCallback
@@ -121,6 +122,7 @@ display context = do
   r1 <- get (contextRot1 context)
   r2 <- get (contextRot2 context)
   r3 <- get (contextRot3 context)
+  dodec <- get (contextMeshes context)
   loadIdentity
   (_, size) <- get viewport
   resize zoom size
@@ -129,7 +131,7 @@ display context = do
   rotate r3 $ Vector3 0 0 1
   mapM_ (\mesh -> renderPrimitive Triangles $ do
     materialDiffuse Front $= blue
-    mapM_ drawTriangle mesh) meshes
+    mapM_ drawTriangle mesh) dodec
   swapBuffers
   where
     drawTriangle (v1,v2,v3) = do
@@ -155,11 +157,13 @@ keyboard ::
   -> IORef GLfloat
   -> IORef GLfloat -- rotations
   -> IORef GLdouble -- zoom
+  -> IORef GLdouble -- s
+  -> IORef [Mesh]
   -> IORef Bool -- animation
   -> IORef Bool -- save
   -> IORef Int -- delay
   -> KeyboardCallback
-keyboard rot1 rot2 rot3 zoom anim save delay c _ = do
+keyboard rot1 rot2 rot3 zoom s dodec anim save delay c _ = do
   case c of
     'e' -> rot1 $~! subtract 2
     'r' -> rot1 $~! (+ 2)
@@ -174,6 +178,14 @@ keyboard rot1 rot2 rot3 zoom anim save delay c _ = do
     's' -> save $~! not
     'o' -> delay $~! (+5000)
     'p' -> delay $~! (\d -> if d==0 then 0 else d-5000)
+    'b' -> do
+      s $~! (\x -> if x>0.025 then x-0.025 else x)
+      s' <- get s
+      writeIORef dodec (meshes s')
+    'n' -> do
+      s $~! (+ 0.025)
+      s' <- get s
+      writeIORef dodec (meshes s')
     _ -> return ()
   postRedisplay Nothing
 
@@ -230,6 +242,8 @@ main = do
   rot2 <- newIORef 0.0
   rot3 <- newIORef 0.0
   zoom <- newIORef 0.0
+  s <- newIORef 0.5
+  dodec <- newIORef (meshes 0.5)
   anim <- newIORef False
   save <- newIORef False
   delay <- newIORef 5000
@@ -240,10 +254,11 @@ main = do
       , contextRot2 = rot2
       , contextRot3 = rot3
       , contextZoom = zoom
+      , contextMeshes = dodec
       }
   reshapeCallback $= Just (resize 0)
   keyboardCallback $=
-    Just (keyboard rot1 rot2 rot3 zoom anim save delay)
+    Just (keyboard rot1 rot2 rot3 zoom s dodec anim save delay)
   snapshot <- newIORef 0
   idleCallback $= Just (idle anim save delay snapshot rot2)
   putStrLn
@@ -251,6 +266,7 @@ main = do
         \    To quit, press q.\n\
         \    Scene rotation: e, r, t, y, u, i\n\
         \    Zoom: l, m\n\
+        \    Decrease/Increase s: b, n\n\
         \    Animation: a\n\
         \    Animation speed: o, p\n\
         \    Save animation: s\n\
