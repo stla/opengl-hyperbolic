@@ -1,10 +1,10 @@
 module GyrosegmentU
-  ( gyrosegment )
+--  ( gyrosegment )
   where
 import Linear
 
 betaF :: Floating a => a -> V3 a -> a
-betaF s v = 1 / sqrt(1 + quadrance v / s)
+betaF s v = 1 / sqrt(1 + quadrance v / s / s)
 
 gyroadd :: Floating a => a -> V3 a -> V3 a -> V3 a
 gyroadd s x y =

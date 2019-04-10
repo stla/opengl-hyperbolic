@@ -4,10 +4,10 @@ module GyroU
 import Linear
 
 gammaF :: Floating a => a -> V3 a -> a
-gammaF s v = 1 / sqrt(1 - quadrance v / s)
+gammaF s v = 1 / sqrt(1 - quadrance v / s / s)
 
 betaF :: Floating a => a -> V3 a -> a
-betaF s v = 1 / sqrt(1 + quadrance v / s)
+betaF s v = 1 / sqrt(1 + quadrance v / s / s)
 
 phiEU :: Floating a => a -> V3 a -> V3 a
 phiEU s v = gammaF s v *^ v
