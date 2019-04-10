@@ -15,12 +15,14 @@ import System.Directory (doesDirectoryExist)
 import System.IO.Unsafe
 import Text.Printf
 
-white, black, red, blue, grey :: Color4 GLfloat
+white, black, red, blue, grey, yellow, navy :: Color4 GLfloat
 white = Color4 1 1 1 1
 black = Color4 0 0 0 1
 red = Color4 1 0 0 1
 blue = Color4 0 0 1 1
 grey = Color4 0.35 0.35 0.35 1
+yellow = Color4 1 1 0 1
+navy = Color4 0 0 0.5 1
 
 type Point = (GLdouble, GLdouble, GLdouble)
 
@@ -136,7 +138,7 @@ segments =
   map (\e -> (toV3 $ points !! (e !! 0), toV3 $ points !! (e !! 1))) edges
 
 gyrosegments :: GLdouble -> [[V3 GLdouble]]
-gyrosegments s = map (\ab -> gyrosegment s (fst ab) (snd ab) 50) segments
+gyrosegments s = map (\ab -> gyrosegment s (fst ab) (snd ab) 200) segments
 
 triangles1 :: [(Point, Point, Point)]
 triangles1 = map getPoints faces
@@ -156,6 +158,7 @@ data Context = Context
   , contextRot3 :: IORef GLfloat
   , contextZoom :: IORef Double
   , contextMeshes :: IORef [Mesh]
+  , contextEdges :: IORef [V3 GLdouble]
   }
 
 display :: Context -> DisplayCallback
@@ -166,6 +169,7 @@ display context = do
   r2 <- get (contextRot2 context)
   r3 <- get (contextRot3 context)
   dodec <- get (contextMeshes context)
+  balls <- get (contextEdges context)
   loadIdentity
   (_, size) <- get viewport
   resize zoom size
@@ -173,15 +177,15 @@ display context = do
   rotate r2 $ Vector3 0 1 0
   rotate r3 $ Vector3 0 0 1
   mapM_ (\mesh -> renderPrimitive Triangles $ do
-    materialDiffuse Front $= blue
+    materialDiffuse Front $= navy
     mapM_ drawTriangle mesh) dodec
   mapM_
     (\pt ->
        preservingMatrix $ do
          translate (toVector3 pt)
-         materialDiffuse Front $= red
-         renderObject Solid $ Sphere' 0.05 8 8)
-    (concat (gyrosegments 0.5))
+         materialDiffuse Front $= yellow
+         renderObject Solid $ Sphere' 0.015 16 16)
+    balls
   swapBuffers
   where
     drawTriangle (v1,v2,v3) = do
@@ -210,11 +214,12 @@ keyboard ::
   -> IORef GLdouble -- zoom
   -> IORef GLdouble -- s
   -> IORef [Mesh]
+  -> IORef [V3 GLdouble]
   -> IORef Bool -- animation
   -> IORef Bool -- save
   -> IORef Int -- delay
   -> KeyboardCallback
-keyboard rot1 rot2 rot3 zoom s dodec anim save delay c _ = do
+keyboard rot1 rot2 rot3 zoom s dodec balls anim save delay c _ = do
   case c of
     'e' -> rot1 $~! subtract 2
     'r' -> rot1 $~! (+ 2)
@@ -233,10 +238,12 @@ keyboard rot1 rot2 rot3 zoom s dodec anim save delay c _ = do
       s $~! (\x -> if x>0.025 then x-0.025 else x)
       s' <- get s
       writeIORef dodec (meshes s')
+      writeIORef balls (concat (gyrosegments s'))
     'n' -> do
       s $~! (+ 0.025)
       s' <- get s
       writeIORef dodec (meshes s')
+      writeIORef balls (concat (gyrosegments s'))
     _ -> return ()
   postRedisplay Nothing
 
@@ -295,6 +302,7 @@ main = do
   zoom <- newIORef 0.0
   s <- newIORef 0.5
   dodec <- newIORef (meshes 0.5)
+  balls <- newIORef (concat (gyrosegments 0.5))
   anim <- newIORef False
   save <- newIORef False
   delay <- newIORef 5000
@@ -306,10 +314,11 @@ main = do
       , contextRot3 = rot3
       , contextZoom = zoom
       , contextMeshes = dodec
+      , contextEdges = balls
       }
   reshapeCallback $= Just (resize 0)
   keyboardCallback $=
-    Just (keyboard rot1 rot2 rot3 zoom s dodec anim save delay)
+    Just (keyboard rot1 rot2 rot3 zoom s dodec balls anim save delay)
   snapshot <- newIORef 0
   idleCallback $= Just (idle anim save delay snapshot rot2)
   putStrLn
