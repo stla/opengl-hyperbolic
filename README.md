@@ -1,11 +1,13 @@
-# opengl-hyperbolic
+# opengl-hyperbolic (Haskell)
 
-![gfycat](https://thumbs.gfycat.com/PlasticUnsungBobolink-size_restricted.gif)
+___
 
-![gfycat](https://thumbs.gfycat.com/RashFirmChuckwalla-size_restricted.gif)
+![](gallery/htriangle.gif)
 
-![gfycat](https://thumbs.gfycat.com/GoodnaturedMasculineInvisiblerail-size_restricted.gif)
+![](gallery/htetrahedron.gif)
 
-![gfycat](https://thumbs.gfycat.com/ConstantImperfectFlyingsquirrel-size_restricted.gif)
+![](gallery/hpolyhedron1.gif)
 
-![gfycat](https://thumbs.gfycat.com/SneakyDefinitiveAntbear-size_restricted.gif)
+![](gallery/hpolyhedron2.gif)
+
+![](gallery/hpolyhedron3.gif)
